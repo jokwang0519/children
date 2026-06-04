@@ -30,20 +30,35 @@ function PlayGame() {
   // 1초마다 게임 상태 체크
   useEffect(() => {
     const interval = setInterval(async () => {
-      const { data: q } = await supabase.from("quizzes").select("*").eq("id", id).single();
-      if (!q) return;
-      if (q.is_active && phase === "waiting") {
-        setQuiz(q);
-        setCurrentQ(q.current_question || 0);
-        setPhase("question");
+      const { data: latestQuiz } = await supabase.from("quizzes").select("*").eq("id", id).single();
+      if (!latestQuiz) return;
+
+      // 게임 시작됨 → 대기 화면에서 문제 화면으로 전환
+      if (latestQuiz.is_active && (phase === "waiting")) {
+        const { data: qs } = await supabase.from("questions").select("*").eq("quiz_id", id).order("order_num");
+        setQuestions(qs || []);
+        setQuiz(latestQuiz);
+        setCurrentQ(latestQuiz.current_question || 0);
         setSelected(null);
+        setIsCorrect(null);
+        setPhase("question");
       }
-      if (!q.is_active && phase !== "end" && phase !== "waiting") {
+
+      // 다음 문제로 넘어감
+      if (latestQuiz.is_active && latestQuiz.current_question !== currentQ && phase === "answered") {
+        setCurrentQ(latestQuiz.current_question);
+        setSelected(null);
+        setIsCorrect(null);
+        setPhase("question");
+      }
+
+      // 게임 종료
+      if (!latestQuiz.is_active && phase !== "end" && phase !== "waiting") {
         setPhase("end");
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [id, phase]);
+  }, [id, phase, currentQ]);
 
   useEffect(() => {
     const channel = supabase.channel("quiz-state-" + id)
