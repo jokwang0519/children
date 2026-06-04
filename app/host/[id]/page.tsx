@@ -29,7 +29,7 @@ export default function HostPage() {
 
   // 3초마다 자동 새로고침 (실시간 백업)
   useEffect(() => {
-    const interval = setInterval(() => { fetchPlayers(); }, 3000);
+    const interval = setInterval(() => { fetchPlayers(); }, 1000);
     return () => clearInterval(interval);
   }, []);
 
