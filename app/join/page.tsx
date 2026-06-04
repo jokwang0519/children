@@ -20,7 +20,7 @@ function JoinForm() {
     if (!pin.trim() || !nickname.trim()) return;
     setLoading(true);
     setError("");
-    const { data: quiz } = await supabase.from("quizzes").select("*").eq("pin", pin.toUpperCase()).eq("is_active", true).single();
+    const { data: quiz } = await supabase.from("quizzes").select("*").eq("pin", pin.toUpperCase()).single();
     if (!quiz) { setError("게임을 찾을 수 없어요. 핀번호를 확인해주세요! 🔍"); setLoading(false); return; }
     const { data: player } = await supabase.from("players").insert({ quiz_id: quiz.id, nickname }).select().single();
     setLoading(false);
