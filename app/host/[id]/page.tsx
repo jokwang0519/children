@@ -27,6 +27,12 @@ export default function HostPage() {
 
   useEffect(() => { fetchData(); }, [id]);
 
+  // 3초마다 자동 새로고침 (실시간 백업)
+  useEffect(() => {
+    const interval = setInterval(() => { fetchPlayers(); }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
   // 실시간 플레이어 업데이트
   useEffect(() => {
     const channel = supabase.channel("players-" + id)
