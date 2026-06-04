@@ -20,8 +20,8 @@ function JoinForm() {
     if (!pin.trim() || !nickname.trim()) return;
     setLoading(true);
     setError("");
-    const { data: quiz } = await supabase.from("quizzes").select("*").eq("pin", pin.toUpperCase()).single();
-    if (!quiz) { setError("게임을 찾을 수 없어요. 핀번호를 확인해주세요! 🔍"); setLoading(false); return; }
+    const { data: quiz, error: quizError } = await supabase.from("quizzes").select("*").eq("pin", pin.toUpperCase()).single();
+    if (quizError || !quiz) { setError("오류: " + (quizError?.message || "게임을 찾을 수 없어요") + " / 핀: " + pin.toUpperCase()); setLoading(false); return; }
     const { data: player } = await supabase.from("players").insert({ quiz_id: quiz.id, nickname }).select().single();
     setLoading(false);
     if (player) router.push(`/play/${quiz.id}?player=${player.id}`);
