@@ -27,6 +27,24 @@ function PlayGame() {
 
   useEffect(() => { fetchData(); }, [id]);
 
+  // 1초마다 게임 상태 체크
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const { data: q } = await supabase.from("quizzes").select("*").eq("id", id).single();
+      if (!q) return;
+      if (q.is_active && phase === "waiting") {
+        setQuiz(q);
+        setCurrentQ(q.current_question || 0);
+        setPhase("question");
+        setSelected(null);
+      }
+      if (!q.is_active && phase !== "end" && phase !== "waiting") {
+        setPhase("end");
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [id, phase]);
+
   useEffect(() => {
     const channel = supabase.channel("quiz-state-" + id)
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "quizzes", filter: `id=eq.${id}` },
@@ -106,7 +124,13 @@ function PlayGame() {
   );
 
   const q = questions[currentQ];
-  if (!q) return <div className="min-h-screen flex items-center justify-center text-gray-400">로딩 중...</div>;
+  if (!q) return (
+    <div className="min-h-screen bg-purple-700 flex flex-col items-center justify-center text-white gap-4">
+      <div className="text-5xl animate-bounce">⏳</div>
+      <p className="text-2xl font-black">잠깐만요!</p>
+      <p className="text-white/70">선생님이 게임을 준비 중이에요...</p>
+    </div>
+  );
 
   // 답변 완료
   if (phase === "answered") return (

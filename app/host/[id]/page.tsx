@@ -79,9 +79,11 @@ export default function HostPage() {
   };
 
   const startGame = async () => {
+    if (questions.length === 0) { alert("문제를 먼저 저장해주세요!"); return; }
     await supabase.from("quizzes").update({ is_active: true, current_question: 0 }).eq("id", id);
-    setPhase("question");
     setCurrentQ(0);
+    setAnswerCounts([0, 0, 0, 0]);
+    setPhase("question");
   };
 
   const showAnswer = () => {
@@ -103,7 +105,13 @@ export default function HostPage() {
     }
   };
 
-  if (!quiz) return <div className="min-h-screen flex items-center justify-center text-gray-400">로딩 중...</div>;
+  if (!quiz) return (
+    <div className="min-h-screen bg-purple-700 flex flex-col items-center justify-center text-white gap-4">
+      <div className="text-4xl animate-spin">⏳</div>
+      <p className="text-xl font-bold">로딩 중...</p>
+      <p className="text-white/60 text-sm">문제 수: {questions.length}개</p>
+    </div>
+  );
 
   const q = questions[currentQ];
   const totalAnswers = answerCounts.reduce((a, b) => a + b, 0);
