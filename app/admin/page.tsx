@@ -32,8 +32,12 @@ export default function AdminPage() {
     if (!title.trim()) return;
     setLoading(true);
     const pin = generatePin();
-    const { data } = await supabase.from("quizzes").insert({ title, pin }).select().single();
+    const { data, error } = await supabase.from("quizzes").insert({ title, pin }).select().single();
     setLoading(false);
+    if (error) {
+      alert("오류 발생: " + error.message + "\n\n코드: " + error.code);
+      return;
+    }
     setTitle("");
     if (data) router.push(`/admin/quiz/${data.id}`);
     fetchQuizzes();
